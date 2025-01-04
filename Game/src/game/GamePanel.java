@@ -12,11 +12,18 @@ import java.util.Arrays;
 
 /**
  *
- * @author MikeRD
+ * @author Xuhan
  */
 public class GamePanel extends JPanel implements MouseListener, KeyListener, MouseMotionListener {
 
     private Sprite bg = new Sprite(0, 0, "imgs/bg.png", 5400, 2700);
+
+    private Sprite[] zombie = {
+        new Sprite(0, 0, "imgs/zombie/zombie0.png", 360, 380),
+        new Sprite(0, 0, "imgs/zombie/zombie1.png", 360, 380),
+        new Sprite(0, 0, "imgs/zombie/zombie2.png", 360, 380),
+        new Sprite(0, 0, "imgs/zombie/zombie3.png", 360, 380),
+        new Sprite(0, 0, "imgs/zombie/zombie4.png", 360, 380),};
 
     private int[] mouse = {0, 0};
 
@@ -24,6 +31,8 @@ public class GamePanel extends JPanel implements MouseListener, KeyListener, Mou
 
     public final int HEIGHT = 1080;
     public final int WIDTH = 1920;
+    
+    private int curFrame = 0;
 
     public GamePanel() {
         addMouseListener(this);
@@ -33,8 +42,13 @@ public class GamePanel extends JPanel implements MouseListener, KeyListener, Mou
         requestFocusInWindow();
 
         Timer t = new Timer(7, e -> {
+
+            curFrame++;
+            curFrame = curFrame % 5;
+
             bg.setX((int) (-mouse[0] * (5400.0 / WIDTH - 1)));
             bg.setY((int) (-mouse[1] * (2700.0 / HEIGHT - 1)));
+
             repaint();
         });
         t.start();
@@ -43,8 +57,13 @@ public class GamePanel extends JPanel implements MouseListener, KeyListener, Mou
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+
         // draw background
         bg.draw(g);
+        
+        zombie[curFrame].moveOneStepX();
+        zombie[curFrame].draw(g);
+        
 
         // draw weapon upgrade module
         //g.
