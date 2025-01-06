@@ -8,15 +8,14 @@ import javax.swing.*;
 import apphelper.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Arrays;
 
 /**
  *
  * @author Xuhan
  */
-public class GamePanel extends JPanel implements MouseListener, KeyListener, MouseMotionListener {
+public class GamePanel extends JPanel implements KeyListener {
 
-    private Sprite bg = new Sprite(0, 0, "imgs/bg.png", 5400, 2700);
+    private Sprite bg = new Sprite(-500, -500, "imgs/bg.png");
 
     private Sprite[] zombie = {
         new Sprite(0, 0, "imgs/zombie/zombie0.png", 360, 380),
@@ -25,29 +24,57 @@ public class GamePanel extends JPanel implements MouseListener, KeyListener, Mou
         new Sprite(0, 0, "imgs/zombie/zombie3.png", 360, 380),
         new Sprite(0, 0, "imgs/zombie/zombie4.png", 360, 380),};
 
-    private int[] mouse = {0, 0};
-
     private int recoil = 0;
 
-    public final int HEIGHT = 1080;
-    public final int WIDTH = 1920;
-    
+    private int width;
+    private int height;
+
     private int curFrame = 0;
 
-    public GamePanel() {
-        addMouseListener(this);
+    private Robot robot;
+    private Point centerPoint;
+    private boolean isTracking = true;
+    private static int deltaX;
+    private static int deltaY;
+
+    public GamePanel(int width, int height) {
+        this.width = width;
+        this.height = height;
+        bg.resize((int) (width * 2.5), (int) (height * 2.5));
+
         addKeyListener(this);
-        addMouseMotionListener(this);
         setFocusable(true);
         requestFocusInWindow();
+
+        try {
+            robot = new Robot();
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
+        addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                // Get the center point of the window
+                centerPoint = new Point(width / 2, height / 2);
+                Point locationOnScreen = getLocationOnScreen();
+                centerPoint.translate(locationOnScreen.x, locationOnScreen.y);
+
+                // Calculate the mouse movement delta
+                deltaX = e.getXOnScreen() - centerPoint.x;
+                deltaY = e.getYOnScreen() - centerPoint.y;
+
+                // Move mouse back to center
+                robot.mouseMove(centerPoint.x, centerPoint.y);
+            }
+        });
 
         Timer t = new Timer(7, e -> {
 
             curFrame++;
             curFrame = curFrame % 5;
 
-            bg.setX((int) (-mouse[0] * (5400.0 / WIDTH - 1)));
-            bg.setY((int) (-mouse[1] * (2700.0 / HEIGHT - 1)));
+            bg.setX(bg.getX() - 2 * deltaX);
+            bg.setY(bg.getY() - 2 * deltaY);
 
             repaint();
         });
@@ -60,21 +87,20 @@ public class GamePanel extends JPanel implements MouseListener, KeyListener, Mou
 
         // draw background
         bg.draw(g);
-        
+
         zombie[curFrame].moveOneStepX();
         zombie[curFrame].draw(g);
-        
 
         // draw weapon upgrade module
         //g.
         // draw crosshair
         g.setColor(Color.YELLOW);
-        g.fillRect(WIDTH / 2 - 20 - recoil, HEIGHT / 2 - 2, 15, 4);
-        g.fillRect(WIDTH / 2 + 5 + recoil, HEIGHT / 2 - 2, 15, 4);
-        g.fillRect(WIDTH / 2 - 2, HEIGHT / 2 - 20 - recoil, 4, 15);
-        g.fillRect(WIDTH / 2 - 2, HEIGHT / 2 + 5 + recoil, 4, 15);
+        g.fillRect(width / 2 - 20 - recoil, height / 2 - 2, 15, 4);
+        g.fillRect(width / 2 + 5 + recoil, height / 2 - 2, 15, 4);
+        g.fillRect(width / 2 - 2, height / 2 - 20 - recoil, 4, 15);
+        g.fillRect(width / 2 - 2, height / 2 + 5 + recoil, 4, 15);
 
-        g.drawString(Arrays.toString(mouse), 10, 10);
+        g.drawString(deltaX + ", " + deltaY, 10, 10);
     }
 
     //all keys
@@ -91,39 +117,4 @@ public class GamePanel extends JPanel implements MouseListener, KeyListener, Mou
     @Override
     public void keyTyped(KeyEvent e) {
     }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-        recoil = 2;
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        recoil = 0;
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent e) {
-        // Update var with mouse coordinates
-        mouse = new int[]{e.getX(), e.getY()};
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-        // Update var with mouse coordinates
-        mouse = new int[]{e.getX(), e.getY()};
-    }
-
 }

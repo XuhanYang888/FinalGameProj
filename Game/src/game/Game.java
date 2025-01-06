@@ -4,47 +4,61 @@
  */
 package game;
 
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 
-/**
- *
- * @author Xuhan
- */
-public class Game {
+public class Game extends JFrame {
+    
+    private GamePanel p;
+    
+    private static int width;
+    private static int height;
 
-    /** 
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        // create and setup frame
-        JFrame f = new JFrame("Game");
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.setSize(1920, 1080);
-        //f.setLocation(0, 0);
+    public Game() {
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice gd = ge.getDefaultScreenDevice();
+        GraphicsConfiguration gc = gd.getDefaultConfiguration();
 
-        // create and setup panel
-        GamePanel p = new GamePanel();
+        // Get the physical screen resolution
+        DisplayMode dm = gd.getDisplayMode();
+        int physicalWidth = dm.getWidth();
+        int physicalHeight = dm.getHeight();
+        System.out.println("Physical Resolution: " + physicalWidth + " x " + physicalHeight);
 
-        // Create a transparent cursor
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Image transparentImage = toolkit.createImage(new byte[0]);
-        Cursor invisibleCursor = toolkit.createCustomCursor(transparentImage, new Point(0, 0), "InvisibleCursor");
+        // Get the scaling factor
+        AffineTransform transform = gc.getDefaultTransform();
+        double scaleX = transform.getScaleX();
+        double scaleY = transform.getScaleY();
+        System.out.println("Scaling factor (X-axis): " + scaleX);
+        System.out.println("Scaling factor (Y-axis): " + scaleY);
 
-        // Set the custom cursor for the panel
-        p.setCursor(invisibleCursor);
-
-        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        f.setResizable(false); // Optional: prevent resizing
-        f.setUndecorated(true);
-        gd.setFullScreenWindow(f);
-
-        // add panel to the frame
-        f.add(p);
-        // make visible
-        f.setVisible(true);
-
+        // Calculate the scaled resolution (logical resolution)
+        width = (int) (physicalWidth / scaleX);
+        height = (int) (physicalHeight / scaleY);
+        System.out.println("Scaled Resolution (Logical): " + width + " x " + height);
+        
+        // create frame
+        setTitle("Game");
+        setSize(width,height);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
+        p = new GamePanel(width,height);
+        add(p);
+        
+        // Make window focusable to receive key events
+        setFocusable(true);
+        
+        Toolkit t = Toolkit.getDefaultToolkit();
+        Image i = t.createImage(new byte[0]);
+        Cursor c = t.createCustomCursor(i, new Point(0,0), "c");
+        p.setCursor(c);
+        
     }
 
+    public static void main(String[] args) {
+        Game g = new Game();
+        g.setVisible(true);
+    }
 }
